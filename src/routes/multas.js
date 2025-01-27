@@ -23,10 +23,11 @@ router.post('/multas', async (req, res) => {
 // Ruta para obtener todas las multas
 router.get('/multas', async (req, res) => {
   try {
-    const multas = await Multa.find(); // Recuperar todas las multas de la base de datos
-    res.status(200).json(multas); // Devolver las multas en formato JSON
+    const { userId } = req.query; // Obtener el id del usuario autenticado desde el query
+    const multas = await Multa.find({ userId }); // Filtrar multas por el usuario
+    res.status(200).json(multas);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener las multas', error });
+    res.status(500).json({ mensaje: 'Error al obtener las multas del usuario', error });
   }
 });
 
