@@ -1,36 +1,46 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const Multa = require('../models/multa');  
+const Multa = require("../models/multa");
 
-// Ruta para crear una nueva multa
-router.post('/multas', async (req, res) => {
-  try {
-    const { cantidad, departamento, torre, comentarios } = req.body;  // Ajusta los campos que necesitas recibir
-    const nuevaMulta = new Multa({
-      cantidad,
-      torre,
-      departamento,
-      comentarios
-    });
+module.exports = (io) => {
+  // Ruta para crear una nueva multa
+  router.post("/multas", async (req, res) => {
+    try {
+      const { cantidad, torre, departamento, comentarios } = req.body;
 
-    const multaGuardada = await nuevaMulta.save();  // Guarda el documento en la base de datos
-    res.status(201).json(multaGuardada);
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al guardar la multa', error });
-  }
-});
+      const nuevaMulta = new Multa({
+        cantidad,
+        torre,
+        departamento,
+        comentarios,
+      });
 
-// Ruta para obtener todas las multas
-router.get('/multas', async (req, res) => {
-  try {
-    const { userId } = req.query; // Obtener el id del usuario autenticado desde el query
-    const multas = await Multa.find({ userId }); // Filtrar multas por el usuario
-    res.status(200).json(multas);
-  } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener las multas del usuario', error });
-  }
-});
+      const multaGuardada = await nuevaMulta.save();
 
+      // Emitir evento de notificación a los clientes conectados
+      io.emit("nuevaMulta", {
+        torre,
+        departamento,
+        cantidad,
+        comentarios,
+      });
 
+      res.status(201).json(multaGuardada);
+    } catch (error) {
+      res.status(500).json({ mensaje: "Error al guardar la multa", error });
+    }
+  });
 
-module.exports = router;
+  // Ruta para obtener todas las multas
+  router.get("/multas", async (req, res) => {
+    try {
+      const { userId } = req.query;
+      const multas = await Multa.find({ userId });
+      res.status(200).json(multas);
+    } catch (error) {
+      res.status(500).json({ mensaje: "Error al obtener las multas del usuario", error });
+    }
+  });
+
+  return router;
+};

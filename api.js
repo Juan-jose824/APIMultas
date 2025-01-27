@@ -1,33 +1,41 @@
-require('dotenv').config();  // Carga las variables de entorno
+require('dotenv').config();
 const express = require("express");
-const cors = require("cors");  // Importar CORS
-const connectDB = require("./src/db");  // Conexión a MongoDB
-const multas = require("./src/routes/multas");  // Importa la ruta de multas
-const usuarios = require("./src/routes/usuarios"); // Importa la ruta de usuarios
+const cors = require("cors");
+const http = require("http"); // Necesario para Socket.IO
+const { Server } = require("socket.io");
+const connectDB = require("./src/db");
+const multas = require("./src/routes/multas");
+const usuarios = require("./src/routes/usuarios");
 
 const app = express();
+const server = http.createServer(app); // Crear el servidor HTTP
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173", // Puerto del frontend
+    methods: ["GET", "POST"],
+  },
+});
 
 // Conectar a MongoDB
 connectDB();
 
 // Middleware
-app.use(cors());  // Habilitar CORS
+app.use(cors());
 app.use(express.json());
 
 // Rutas
-app.use("/api", multas);  // Ruta para las operaciones relacionadas con multas
+app.use("/api", multas(io)); // Pasar `io` a las rutas de multas
 app.use("/api/usuarios", usuarios);
 
-// Servidor
-const PORT = process.env.PORT || 4000;  // El puerto del servidor (puedes mantener 4000 o cambiar según la necesidad)
-const FRONTEND_PORT = 5173;  // Puerto de la aplicación web
+// Socket.IO - Manejo de conexiones
+io.on("connection", (socket) => {
+  console.log("Cliente conectado:", socket.id);
 
-// Configurar redireccionamiento CORS para la aplicación web (habilita solicitudes entre dominios)
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", `http://localhost:${FRONTEND_PORT}`);
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
-  next();
+  socket.on("disconnect", () => {
+    console.log("Cliente desconectado:", socket.id);
+  });
 });
 
-app.listen(PORT, () => console.log(`Servidor API corriendo en el puerto ${PORT}`));
+// Servidor
+const PORT = process.env.PORT || 4000;
+server.listen(PORT, () => console.log(`Servidor API corriendo en el puerto ${PORT}`));
