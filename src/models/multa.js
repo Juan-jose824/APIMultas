@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 
 const MultaSchema = new mongoose.Schema({
-  cantidad: { type: String, required: true },  // Ajusta el tipo y los requerimientos de los campos
-  torre: { type: String, required: true },
-  departamento: { type: String, required: true },
-  comentarios: { type: String, required: true },  // Ajusta este campo según lo necesitas
+  coto: { type: String, required: true },
+  monto: { type: Number, required: true },
+  fecha: { type: Date, required: true },
+  comentario: { type: String, required: true },
 }, {
-  timestamps: true,  // Mantener los campos de timestamps si lo necesitas
+  timestamps: true,
 });
 
 module.exports = mongoose.model('Multa', MultaSchema);
