@@ -3,16 +3,26 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./src/db");
 const multaRoutes = require("./src/routes/multas");
+const authRoutes = require("./src/routes/authRoutes"); // Importamos las rutas de autenticación
+const validateToken = require("./src/middleware/validateToken"); // Importamos el middleware para validar el token
 
 const app = express();
 connectDB();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api", multaRoutes);
+
+// Rutas de autenticación (login)
+app.use("/api/auth", authRoutes); // Esta ruta maneja el login y la creación de tokens
+
+// Rutas de multas, protegidas por token
+app.use("/api", validateToken, multaRoutes); // Estas rutas están protegidas por token
+
 app.get("/", (req, res) => {
-    res.send("Bienvenido a la API de Multas 🚀");
-  });
-  
+  res.send("Bienvenido a la API de Multas 🚀");
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+app.listen(PORT, () =>
+  console.log(`Servidor corriendo en http://localhost:${PORT}`)
+);
