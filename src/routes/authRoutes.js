@@ -1,24 +1,38 @@
-// src/routes/authRoutes.js
 const express = require('express');
-const jwt = require('jsonwebtoken');
-const validateToken = require('../middlewares/authMiddleware'); // Ruta del middleware
-
+const bcrypt = require('bcrypt');
+const User = require('../models/User');  // Importar el modelo User
 const router = express.Router();
 
-// Ruta para login (creación del token)
-router.post('/login', (req, res) => {
-  const { phone, password } = req.body;
+// Ruta de login
+router.post('/login', async (req, res) => {
+  const { num_cel, password } = req.body;
 
-  // Aquí iría la lógica para validar el teléfono y la contraseña
-  // Si es válido, creamos un token JWT
-  const token = jwt.sign({ phone, role: 'usuario' }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  // Verificar si ambos campos fueron enviados
+  if (!num_cel || !password) {
+    return res.status(400).json({ message: 'Número de celular y contraseña son requeridos' });
+  }
 
-  res.json({ token });
-});
+  try {
+    // Buscar el usuario por número de celular
+    const user = await User.findOne({ num_cel });
 
-// Ruta protegida, solo accesible con un token válido
-router.get('/protected-route', validateToken, (req, res) => {
-  res.send('Acceso a la ruta protegida exitoso');
+    if (!user) {
+      return res.status(401).json({ message: 'Número de celular o contraseña incorrectos' });
+    }
+
+    // Comparar la contraseña ingresada con la almacenada en la base de datos
+    const validPassword = await bcrypt.compare(password, user.contra);
+
+    if (!validPassword) {
+      return res.status(401).json({ message: 'Número de celular o contraseña incorrectos' });
+    }
+
+    // Si la autenticación es exitosa
+    res.status(200).json({ message: 'Inicio de sesión exitoso', userId: user._id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error en el servidor' });
+  }
 });
 
 module.exports = router;
