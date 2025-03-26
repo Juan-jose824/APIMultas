@@ -62,15 +62,18 @@ router.post('/login', async (req, res) => {
     if (!validPassword) {
       return res.status(401).json({ message: 'Número de celular o contraseña incorrectos' });
     }
-
+    
     // Si la autenticación es exitosa, generar el token JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    
+
 
     // Enviar el token como respuesta al frontend
     res.status(200).json({
       message: 'Inicio de sesión exitoso',
       token: token,  // El token se envía al frontend
-      userId: user._id  // Puedes enviar el userId si lo necesitas
+      userId: user._id,  // Puedes enviar el userId si lo necesitas
+      rol: user.rol
     });
   } catch (err) {
     console.error(err);
