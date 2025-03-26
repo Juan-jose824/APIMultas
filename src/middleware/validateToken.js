@@ -1,18 +1,19 @@
-// ./src/middleware/validateToken.js
-
 const jwt = require('jsonwebtoken');
 
-function validateToken(req, res, next) {
-  const token = req.header('x-auth-token');
-  if (!token) return res.status(401).json({ message: 'Acceso no autorizado' });
+const validateToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+
+  if (!token) {
+    return res.status(403).json({ message: 'Token no proporcionado' });
+  }
 
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);  // Verifica el token
+    req.user = decoded;  // Adjunta el usuario decodificado a la solicitud
     next();
   } catch (error) {
-    res.status(400).json({ message: 'Token no válido' });
+    res.status(401).json({ message: 'Token inválido o expirado' });
   }
-}
+};
 
 module.exports = validateToken;
