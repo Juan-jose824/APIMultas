@@ -27,10 +27,10 @@ router.post("/", async (req, res) => {
     }
 
     // Generar un token de recuperación de contraseña (expira en 1 hora)
-    const token = jwt.sign({ correo: user.correo }, "secreta_clave", { expiresIn: "1h" });
+    const token = jwt.sign({ correo: user.correo }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
     // Crear el enlace con el token
-    const resetLink = `http://localhost:3000/recuperar/${token}`; // Cambia localhost por tu dominio
+    const resetLink = `http://localhost:5173/recuperar/${token}`; // Cambia localhost por tu dominio
 
     // Configurar el correo
     const mailOptions = {

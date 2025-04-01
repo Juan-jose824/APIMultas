@@ -81,4 +81,59 @@ router.post('/login', async (req, res) => {
   }
 });
 
+
+
+
+
+
+
+
+router.post('/cambiarpass', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const authHeader = req.headers.authorization;
+
+    // Validar que el token está presente en los headers
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Token no proporcionado o inválido" });
+    }
+
+    const token = authHeader.split(" ")[1];
+
+    // Verificar si la contraseña fue enviada
+    if (!password) {
+      return res.status(400).json({ message: "La contraseña es requerida" });
+    }
+
+    // Verificar y decodificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const correo = decoded.correo;
+
+    // Hashear la nueva contraseña
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Actualizar la contraseña del usuario en la base de datos
+    const updatedUser = await User.findOneAndUpdate(
+      { correo },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.status(200).json({
+      message: "Contraseña cambiada exitosamente",
+      success: true
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error en el servidor" });
+  }
+});
+
+
 module.exports = router;

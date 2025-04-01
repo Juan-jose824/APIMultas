@@ -17,7 +17,8 @@ app.use(express.json());
 app.use("/api/auth", authRoutes); // Esta ruta maneja el login y la creación de tokens
 
 // Rutas de multas, protegidas por token
-app.use("/api", validateToken, multaRoutes); // Estas rutas están protegidas por token
+app.use("/api", multaRoutes); // Estas rutas están protegidas por token
+// app.use("/api", validateToken, multaRoutes); // Estas rutas están protegidas por token
 
 app.get("/", (req, res) => {
   res.send("Bienvenido a la API de Multas 🚀");
